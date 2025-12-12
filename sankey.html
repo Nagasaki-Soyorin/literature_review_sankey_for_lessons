@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社保政策影响机制桑基图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            position: relative;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .header p {
+            color: #7f8c8d;
+            font-size: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            min-height: 0;
+        }
+        #main {
+            flex: 1;
+            min-height: 60vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        .legend {
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+        }
+        .legend h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .legend-text {
+            font-size: 0.9rem;
+            color: #34495e;
+            line-height: 1.4;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            min-width: 120px;
+        }
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            .legend {
+                width: 100%;
+                max-height: 300px;
+                order: 2;
+            }
+            #main {
+                order: 1;
+                min-height: 70vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .header {
+                padding: 15px;
+                margin-bottom: 10px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .header p {
+                font-size: 0.9rem;
+            }
+            #main {
+                padding: 10px;
+                min-height: 60vh;
+            }
+            .legend {
+                padding: 15px;
+                max-height: 250px;
+            }
+            .btn {
+                padding: 8px 16px;
+                min-width: 100px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>社保政策影响机制桑基图</h1>
+        <p>展示社保政策通过研究方法、影响机制最终影响经济和社会结果的四层结构关系图</p>
+    </div>
+    
+    <div class="container">
+        <div id="main"></div>
+        <div class="legend">
+            <h3>图例说明</h3>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #e74c3c;"></div>
+                <div class="legend-text">政策层 - 社保相关政策与法规</div>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #9b59b6;"></div>
+                <div class="legend-text">方法层 - 研究方法与实证策略</div>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #3498db;"></div>
+                <div class="legend-text">机制层 - 政策影响的中介机制</div>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #2ecc71;"></div>
+                <div class="legend-text">结果层 - 最终经济与社会结果</div>
+            </div>
+            
+            <h3>关键机制</h3>
+            <div id="mechanismLegend"></div>
+            
+            <h3>操作指南</h3>
+            <p class="legend-text">• 点击节点可查看详细信息</p>
+            <p class="legend-text">• 拖动节点可调整布局</p>
+            <p class="legend-text">• 鼠标悬停可查看连接关系</p>
+            <p class="legend-text">• 连接数最多的三个机制颜色最深</p>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" id="resetBtn">重置视图</button>
+        <button class="btn" id="highlightBtn">高亮关键机制</button>
+        <button class="btn" id="exportBtn">导出图片</button>
+    </div>
+    
+    <div class="footer">
+        <p>数据来源：社保政策研究 | 可视化设计：ECharts</p>
+    </div>
+
+    <script>
+        // 初始化图表
+        var chartDom = document.getElementById('main');
+        var myChart = echarts.init(chartDom);
+        
+        // 定义数据 - 四层结构：政策 -> 方法 -> 机制 -> Y
+        var data = {
+            nodes: [
+                // 第一层：政策 (0-7)
+                {name: "《社会保险费征缴暂行条例（1999）》", category: 0},
+                {name: "《社会保险法（2011）》", category: 0},
+                {name: "《深化党和国家机构改革方案（2019）》", category: 0},
+                {name: "《降低社会保费费率综合方案》", category: 0},
+                {name: "金税三期", category: 0},
+                {name: "《所得税收入分享改革方案（2002）》", category: 0},
+                {name: "纳税信用评级制度", category: 0},
+                {name: "2013年深圳提高社保缴费率", category: 0},
+                
+                // 第二层：方法 (8-18)
+                {name: "Staggered DID", category: 1},
+                {name: "DID", category: 1},
+                {name: "DDD", category: 1},
+                {name: "理论模型", category: 1},
+                {name: "EventStudy", category: 1},
+                {name: "广义DID", category: 1},
+                {name: "断点回归", category: 1},
+                {name: "PSM-DID", category: 1},
+                {name: "IV/DID", category: 1},
+                {name: "交叉固定效应交乘项OLS", category: 1},
+                
+                // 第三层：机制 (19-47)
+                {name: "工资刚性", category: 2},
+                {name: "工资成本", category: 2},
+                {name: "缴费凸显性", category: 2},
+                {name: "员工结构", category: 2},
+                {name: "效率工资", category: 2},
+                {name: "流动性约束", category: 2},
+                {name: "要素替代", category: 2},
+                {name: "劳动议价", category: 2},
+                {name: "市场势力", category: 2},
+                {name: "缴费率", category: 2},
+                {name: "融资约束", category: 2},
+                {name: "征收机构", category: 2},
+                {name: "劳工保护", category: 2},
+                {name: "缴费负担", category: 2},
+                {name: "人口流动", category: 2},
+                {name: "参保率", category: 2},
+                {name: "要素生产率", category: 2},
+                {name: "税费替代", category: 2},
+                {name: "逃费", category: 2},
+                {name: "信息透明度", category: 2},
+                {name: "部门信息协同", category: 2},
+                {name: "现金流约束", category: 2},
+                {name: "避税成本", category: 2},
+                {name: "监管力度", category: 2},
+                {name: "盈余管理", category: 2},
+                {name: "生产成本", category: 2},
+                {name: "研发投入", category: 2},
+                {name: "诉讼风险", category: 2},
+                {name: "政策协同", category: 2},
+                {name: "制度分析", category: 2},
+                
+                // 第四层：Y变量 (48-69)
+                {name: "缴费负担水平", category: 3},
+                {name: "职工工资", category: 3},
+                {name: "职工数量", category: 3},
+                {name: "劳务外包", category: 3},
+                {name: "企业超额回报率", category: 3},
+                {name: "工资水平", category: 3},
+                {name: "工资结构", category: 3},
+                {name: "劳动收入份额", category: 3},
+                {name: "足额征缴率", category: 3},
+                {name: "覆盖率", category: 3},
+                {name: "是否参保", category: 3},
+                {name: "实际缴费率", category: 3},
+                {name: "企业是否退出", category: 3},
+                {name: "社保缴费遵从度", category: 3},
+                {name: "雇工结构", category: 3},
+                {name: "实际所得税率", category: 3},
+                {name: "税会差异", category: 3},
+                {name: "企业成本加成率", category: 3},
+                {name: "企业转型", category: 3},
+                {name: "全要素生产率", category: 3},
+                {name: "发明专利量", category: 3},
+                {name: "社保基金收入", category: 3}
+            ],
+            links: [
+                // ... 链接数据与之前相同，保持不变
+                // 第一行：政策 -> 方法 -> 机制 -> Y
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "Staggered DID", value: 1},
+                {source: "Staggered DID", target: "工资刚性", value: 1},
+                {source: "Staggered DID", target: "缴费凸显性", value: 1},
+                {source: "Staggered DID", target: "员工结构", value: 1},
+                {source: "工资刚性", target: "缴费负担水平", value: 1},
+                {source: "工资刚性", target: "职工工资", value: 1},
+                {source: "工资刚性", target: "职工数量", value: 1},
+                {source: "缴费凸显性", target: "缴费负担水平", value: 1},
+                {source: "缴费凸显性", target: "职工工资", value: 1},
+                {source: "缴费凸显性", target: "职工数量", value: 1},
+                {source: "员工结构", target: "缴费负担水平", value: 1},
+                {source: "员工结构", target: "职工工资", value: 1},
+                {source: "员工结构", target: "职工数量", value: 1},
+
+                // 第二行
+                {source: "《社会保险法（2011）》", target: "DID", value: 1},
+                {source: "DID", target: "工资刚性", value: 1},
+                {source: "DID", target: "缴费凸显性", value: 1},
+                {source: "DID", target: "员工结构", value: 1},
+                {source: "工资刚性", target: "缴费负担水平", value: 1},
+                {source: "工资刚性", target: "职工工资", value: 1},
+                {source: "工资刚性", target: "职工数量", value: 1},
+                {source: "缴费凸显性", target: "缴费负担水平", value: 1},
+                {source: "缴费凸显性", target: "职工工资", value: 1},
+                {source: "缴费凸显性", target: "职工数量", value: 1},
+                {source: "员工结构", target: "缴费负担水平", value: 1},
+                {source: "员工结构", target: "职工工资", value: 1},
+                {source: "员工结构", target: "职工数量", value: 1},
+
+                // 第三行
+                {source: "《社会保险法（2011）》", target: "DDD", value: 1},
+                {source: "DDD", target: "工资刚性", value: 1},
+                {source: "DDD", target: "缴费凸显性", value: 1},
+                {source: "DDD", target: "员工结构", value: 1},
+                {source: "DDD", target: "效率工资", value: 1},
+                {source: "工资刚性", target: "缴费负担水平", value: 1},
+                {source: "工资刚性", target: "职工数量", value: 1},
+                {source: "缴费凸显性", target: "缴费负担水平", value: 1},
+                {source: "缴费凸显性", target: "职工数量", value: 1},
+                {source: "员工结构", target: "缴费负担水平", value: 1},
+                {source: "员工结构", target: "职工数量", value: 1},
+                {source: "效率工资", target: "缴费负担水平", value: 1},
+                {source: "效率工资", target: "职工数量", value: 1},
+
+                // 第四行
+                {source: "《深化党和国家机构改革方案（2019）》", target: "DID", value: 1},
+                {source: "DID", target: "流动性约束", value: 1},
+                {source: "DID", target: "要素替代", value: 1},
+                {source: "DID", target: "劳动议价", value: 1},
+                {source: "DID", target: "市场势力", value: 1},
+                {source: "流动性约束", target: "劳务外包", value: 1},
+                {source: "要素替代", target: "劳务外包", value: 1},
+                {source: "劳动议价", target: "劳务外包", value: 1},
+                {source: "市场势力", target: "劳务外包", value: 1},
+
+                // 第五行
+                {source: "《深化党和国家机构改革方案（2019）》", target: "理论模型", value: 1},
+                {source: "《深化党和国家机构改革方案（2019）》", target: "EventStudy", value: 1},
+                {source: "理论模型", target: "市场势力", value: 1},
+                {source: "理论模型", target: "缴费率", value: 1},
+                {source: "EventStudy", target: "市场势力", value: 1},
+                {source: "EventStudy", target: "缴费率", value: 1},
+                {source: "市场势力", target: "企业超额回报率", value: 1},
+                {source: "缴费率", target: "企业超额回报率", value: 1},
+
+                // 第六行
+                {source: "《深化党和国家机构改革方案（2019）》", target: "广义DID", value: 1},
+                {source: "广义DID", target: "融资约束", value: 1},
+                {source: "广义DID", target: "征收机构", value: 1},
+                {source: "广义DID", target: "劳工保护", value: 1},
+                {source: "融资约束", target: "工资水平", value: 1},
+                {source: "融资约束", target: "工资结构", value: 1},
+                {source: "征收机构", target: "工资水平", value: 1},
+                {source: "征收机构", target: "工资结构", value: 1},
+                {source: "劳工保护", target: "工资水平", value: 1},
+                {source: "劳工保护", target: "工资结构", value: 1},
+
+                // 第七行
+                {source: "《降低社会保费费率综合方案》", target: "DID", value: 1},
+                {source: "DID", target: "缴费负担", value: 1},
+                {source: "DID", target: "征收机构", value: 1},
+                {source: "缴费负担", target: "劳务外包", value: 1},
+                {source: "征收机构", target: "劳务外包", value: 1},
+
+                // 第八行
+                {source: "《社会保险法（2011）》", target: "DID", value: 1},
+                {source: "DID", target: "缴费凸显性", value: 1},
+                {source: "缴费凸显性", target: "劳动收入份额", value: 1},
+
+                // 第九行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "Staggered DID", value: 1},
+                {source: "Staggered DID", target: "人口流动", value: 1},
+                {source: "Staggered DID", target: "参保率", value: 1},
+                {source: "人口流动", target: "足额征缴率", value: 1},
+                {source: "人口流动", target: "覆盖率", value: 1},
+                {source: "参保率", target: "足额征缴率", value: 1},
+                {source: "参保率", target: "覆盖率", value: 1},
+
+                // 第十行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "DID", value: 1},
+                {source: "DID", target: "参保率", value: 1},
+                {source: "参保率", target: "是否参保", value: 1},
+                {source: "参保率", target: "实际缴费率", value: 1},
+
+                // 第十一行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "DID", value: 1},
+                {source: "DID", target: "缴费负担", value: 1},
+                {source: "DID", target: "要素生产率", value: 1},
+                {source: "缴费负担", target: "企业是否退出", value: 1},
+                {source: "要素生产率", target: "企业是否退出", value: 1},
+
+                // 第十二行
+                {source: "金税三期", target: "DID", value: 1},
+                {source: "DID", target: "税费替代", value: 1},
+                {source: "DID", target: "逃费", value: 1},
+                {source: "税费替代", target: "社保缴费遵从度", value: 1},
+                {source: "逃费", target: "社保缴费遵从度", value: 1},
+
+                // 第十三行
+                {source: "《所得税收入分享改革方案（2002）》", target: "断点回归", value: 1},
+                {source: "断点回归", target: "税费替代", value: 1},
+                {source: "断点回归", target: "逃费", value: 1},
+                {source: "税费替代", target: "缴费负担水平", value: 1},
+                {source: "逃费", target: "缴费负担水平", value: 1},
+
+                // 第十四行
+                {source: "纳税信用评级制度", target: "Staggered DID", value: 1},
+                {source: "Staggered DID", target: "信息透明度", value: 1},
+                {source: "信息透明度", target: "社保缴费遵从度", value: 1},
+
+                // 第十五行
+                {source: "金税三期", target: "Staggered DID", value: 1},
+                {source: "Staggered DID", target: "部门信息协同", value: 1},
+                {source: "部门信息协同", target: "实际缴费率", value: 1},
+
+                // 第十六行
+                {source: "《社会保险法（2011）》", target: "DID", value: 1},
+                {source: "DID", target: "现金流约束", value: 1},
+                {source: "DID", target: "要素替代", value: 1},
+                {source: "现金流约束", target: "雇工结构", value: 1},
+                {source: "要素替代", target: "雇工结构", value: 1},
+
+                // 第十七行
+                {source: "《社会保险法（2011）》", target: "DID", value: 1},
+                {source: "DID", target: "信息透明度", value: 1},
+                {source: "DID", target: "避税成本", value: 1},
+                {source: "信息透明度", target: "实际所得税率", value: 1},
+                {source: "信息透明度", target: "税会差异", value: 1},
+                {source: "避税成本", target: "实际所得税率", value: 1},
+                {source: "避税成本", target: "税会差异", value: 1},
+
+                // 第十八行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "DID", value: 1},
+                {source: "DID", target: "信息透明度", value: 1},
+                {source: "DID", target: "监管力度", value: 1},
+                {source: "信息透明度", target: "税会差异", value: 1},
+                {source: "监管力度", target: "税会差异", value: 1},
+
+                // 第十九行
+                {source: "《深化党和国家机构改革方案（2019）》", target: "EventStudy", value: 1},
+                {source: "EventStudy", target: "缴费负担", value: 1},
+                {source: "EventStudy", target: "征收机构", value: 1},
+                {source: "缴费负担", target: "企业超额回报率", value: 1},
+                {source: "征收机构", target: "企业超额回报率", value: 1},
+
+                // 第二十行
+                {source: "《深化党和国家机构改革方案（2019）》", target: "PSM-DID", value: 1},
+                {source: "PSM-DID", target: "信息透明度", value: 1},
+                {source: "PSM-DID", target: "盈余管理", value: 1},
+                {source: "PSM-DID", target: "监管力度", value: 1},
+                {source: "信息透明度", target: "企业超额回报率", value: 1},
+                {source: "盈余管理", target: "企业超额回报率", value: 1},
+                {source: "监管力度", target: "企业超额回报率", value: 1},
+
+                // 第二十一行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "DID", value: 1},
+                {source: "DID", target: "缴费负担", value: 1},
+                {source: "DID", target: "生产成本", value: 1},
+                {source: "缴费负担", target: "企业成本加成率", value: 1},
+                {source: "生产成本", target: "企业成本加成率", value: 1},
+
+                // 第二十二行
+                {source: "《深化党和国家机构改革方案（2019）》", target: "Staggered DID", value: 1},
+                {source: "Staggered DID", target: "融资约束", value: 1},
+                {source: "Staggered DID", target: "要素生产率", value: 1},
+                {source: "Staggered DID", target: "市场势力", value: 1},
+                {source: "Staggered DID", target: "缴费负担", value: 1},
+                {source: "融资约束", target: "企业转型", value: 1},
+                {source: "要素生产率", target: "企业转型", value: 1},
+                {source: "市场势力", target: "企业转型", value: 1},
+                {source: "缴费负担", target: "企业转型", value: 1},
+
+                // 第二十三行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "IV/DID", value: 1},
+                {source: "IV/DID", target: "现金流约束", value: 1},
+                {source: "IV/DID", target: "融资约束", value: 1},
+                {source: "现金流约束", target: "全要素生产率", value: 1},
+                {source: "融资约束", target: "全要素生产率", value: 1},
+
+                // 第二十四行
+                {source: "2013年深圳提高社保缴费率", target: "DID", value: 1},
+                {source: "DID", target: "工资成本", value: 1},
+                {source: "DID", target: "研发投入", value: 1},
+                {source: "工资成本", target: "全要素生产率", value: 1},
+                {source: "工资成本", target: "发明专利量", value: 1},
+                {source: "研发投入", target: "全要素生产率", value: 1},
+                {source: "研发投入", target: "发明专利量", value: 1},
+
+                // 第二十五行
+                {source: "《社会保险法（2011）》", target: "交叉固定效应交乘项OLS", value: 1},
+                {source: "交叉固定效应交乘项OLS", target: "诉讼风险", value: 1},
+                {source: "交叉固定效应交乘项OLS", target: "工资成本", value: 1},
+                {source: "诉讼风险", target: "企业转型", value: 1},
+                {source: "工资成本", target: "企业转型", value: 1},
+
+                // 第二十六行
+                {source: "《社会保险法（2011）》", target: "DID", value: 1},
+                {source: "DID", target: "政策协同", value: 1},
+                {source: "政策协同", target: "社保基金收入", value: 1},
+
+                // 第二十七行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "DID", value: 1},
+                {source: "DID", target: "政策协同", value: 1},
+                {source: "政策协同", target: "社保基金收入", value: 1},
+
+                // 第二十八行
+                {source: "《社会保险费征缴暂行条例（1999）》", target: "DID", value: 1},
+                {source: "DID", target: "制度分析", value: 1},
+                {source: "制度分析", target: "覆盖率", value: 1}
+            ]
+        };
+
+        // 计算机制到Y的连接数量
+        function calculateMechanismLinks() {
+            const mechanismLinkCount = {};
+            
+            data.links.forEach(link => {
+                const sourceNode = data.nodes.find(node => node.name === link.source);
+                const targetNode = data.nodes.find(node => node.name === link.target);
+                
+                // 只计算机制到Y的连接
+                if (sourceNode && targetNode && sourceNode.category === 2 && targetNode.category === 3) {
+                    if (!mechanismLinkCount[link.source]) {
+                        mechanismLinkCount[link.source] = 0;
+                    }
+                    mechanismLinkCount[link.source]++;
+                }
+            });
+            
+            return mechanismLinkCount;
+        }
+
+        // 为机制分配颜色
+        function assignMechanismColors() {
+            const mechanismLinkCount = calculateMechanismLinks();
+            const mechanismNames = Object.keys(mechanismLinkCount);
+            
+            // 按连接数排序
+            const sortedMechanisms = mechanismNames.sort((a, b) => mechanismLinkCount[b] - mechanismLinkCount[a]);
+            
+            // 定义颜色范围
+            const colorPalette = [
+                '#FFB6C1', '#FFD700', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C',
+                '#E6E6FA', '#FFA07A', '#20B2AA', '#DEB887', '#FF69B4', '#00FA9A',
+                '#FFDAB9', '#B0C4DE', '#FF6347', '#7FFFD4', '#FFFACD', '#F5DEB3'
+            ];
+            
+            const mechanismColors = {};
+            const topMechanisms = sortedMechanisms.slice(0, 3);
+            
+            // 为连接数最多的三个机制分配最深的颜色
+            const deepColors = ['#8B0000', '#006400', '#00008B'];
+            
+            sortedMechanisms.forEach((mechanism, index) => {
+                if (index < 3) {
+                    mechanismColors[mechanism] = deepColors[index];
+                } else {
+                    mechanismColors[mechanism] = colorPalette[index % colorPalette.length];
+                }
+            });
+            
+            return {
+                mechanismColors,
+                mechanismLinkCount,
+                topMechanisms
+            };
+        }
+
+        // 应用机制颜色到链接和节点
+        // 应用机制颜色到链接和节点
+        function applyMechanismColors() {
+            const { mechanismColors, mechanismLinkCount, topMechanisms } = assignMechanismColors();
+            
+            // 更新链接颜色
+            data.links.forEach(link => {
+                const sourceNode = data.nodes.find(node => node.name === link.source);
+                const targetNode = data.nodes.find(node => node.name === link.target);
+                
+                // 添加防御性检查，确保节点存在且有category属性
+                if (!sourceNode || !targetNode || sourceNode.category === undefined || targetNode.category === undefined) {
+                    console.warn('找不到节点或节点缺少category属性:', link.source, '->', link.target);
+                    link.lineStyle = {
+                        color: 'rgba(180, 180, 180, 0.4)',
+                        curveness: 0.5
+                    };
+                    return; // 跳过这个链接的处理
+                }
+                
+                // 机制到Y的连接使用机制对应的颜色
+                if (sourceNode.category === 2 && targetNode.category === 3) {
+                    link.lineStyle = {
+                        color: mechanismColors[link.source],
+                        opacity: topMechanisms.includes(link.source) ? 0.8 : 0.5,
+                        curveness: 0.5
+                    };
+                } 
+                // 前两个层次的链接颜色较浅
+                else if ((sourceNode.category === 0 && targetNode.category === 1) || 
+                        (sourceNode.category === 1 && targetNode.category === 2)) {
+                    link.lineStyle = {
+                        color: 'rgba(180, 180, 180, 0.3)',
+                        curveness: 0.5
+                    };
+                }
+                // 其他链接使用默认颜色
+                else {
+                    link.lineStyle = {
+                        color: 'rgba(180, 180, 180, 0.4)',
+                        curveness: 0.5
+                    };
+                }
+            });
+            
+            // 更新节点样式 - 为连接数最多的三个机制设置白色字体和更大字号
+            data.nodes.forEach(node => {
+                if (node.category === 2 && topMechanisms.includes(node.name)) {
+                    node.itemStyle = {
+                        color: mechanismColors[node.name],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    };
+                    node.label = {
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        fontSize: 13
+                    };
+                }
+            });
+            
+            return { mechanismColors, mechanismLinkCount, topMechanisms };
+        }
+
+        // 创建机制图例
+        function createMechanismLegend(mechanismColors, mechanismLinkCount, topMechanisms) {
+            const legendContainer = document.getElementById('mechanismLegend');
+            legendContainer.innerHTML = '';
+            
+            const sortedMechanisms = Object.keys(mechanismColors).sort((a, b) => mechanismLinkCount[b] - mechanismLinkCount[a]);
+            
+            sortedMechanisms.forEach(mechanism => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                const isTopMechanism = topMechanisms.includes(mechanism);
+                
+                legendItem.innerHTML = `
+                    <div class="color-box" style="background-color: ${mechanismColors[mechanism]}; ${isTopMechanism ? 'border: 2px solid #000;' : ''}"></div>
+                    <div class="legend-text">
+                        ${mechanism} 
+                        <span style="color: #666; font-size: 0.8rem;">(${mechanismLinkCount[mechanism]}个连接${isTopMechanism ? ' ⭐' : ''})</span>
+                    </div>
+                `;
+                
+                legendContainer.appendChild(legendItem);
+            });
+        }
+
+        // 应用机制颜色并创建图例
+        const { mechanismColors, mechanismLinkCount, topMechanisms } = applyMechanismColors();
+        createMechanismLegend(mechanismColors, mechanismLinkCount, topMechanisms);
+
+        // 设置选项
+        var option = {
+            title: {
+                text: '社保政策影响机制',
+                subtext: '政策 → 研究方法 → 机制 → 结果的四层结构',
+                left: 'center',
+                textStyle: {
+                    fontSize: 22,
+                    fontWeight: 'bold',
+                    color: '#2c3e50'
+                },
+                subtextStyle: {
+                    fontSize: 14,
+                    color: '#7f8c8d'
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+                triggerOn: 'mousemove',
+                formatter: function(params) {
+                    if (params.dataType === 'node') {
+                        const linkCount = mechanismLinkCount[params.name] || 0;
+                        return `<div style="font-weight:bold;margin-bottom:5px">${params.name}</div>
+                               <div>连接数: ${params.value || linkCount}</div>`;
+                    } else {
+                        return `<div style="font-weight:bold">${params.data.source} → ${params.data.target}</div>`;
+                    }
+                }
+            },
+            series: [{
+                type: 'sankey',
+                layout: 'none',
+                data: data.nodes,
+                links: data.links,
+                emphasis: {
+                    focus: 'adjacency',
+                    lineStyle: {
+                        width: 3
+                    }
+                },
+                levels: [
+                    {
+                        depth: 0,
+                        itemStyle: {
+                            color: '#e74c3c'
+                        },
+                        lineStyle: {
+                            color: 'rgba(180, 180, 180, 0.3)',
+                            opacity: 0.4
+                        }
+                    },
+                    {
+                        depth: 1,
+                        itemStyle: {
+                            color: '#9b59b6'
+                        },
+                        lineStyle: {
+                            color: 'rgba(180, 180, 180, 0.3)',
+                            opacity: 0.4
+                        }
+                    },
+                    {
+                        depth: 2,
+                        itemStyle: {
+                            color: '#3498db'
+                        },
+                        lineStyle: {
+                            color: 'source',
+                            opacity: 0.4
+                        }
+                    },
+                    {
+                        depth: 3,
+                        itemStyle: {
+                            color: '#2ecc71'
+                        },
+                        lineStyle: {
+                            color: 'source',
+                            opacity: 0.3
+                        }
+                    }
+                ],
+                lineStyle: {
+                    curveness: 0.5,
+                    opacity: 0.3
+                },
+                label: {
+                    color: '#2c3e50',
+                    fontSize: 11,
+                    fontWeight: 'normal',
+                    position: 'right',
+                    textAlign: 'center',
+                    verticalAlign: 'middle'
+                },
+                nodeWidth: 15,
+                nodeGap: 2,
+                // nodeAlign: 'center',
+                nodeAlign: 'justify', 
+                layoutIterations: 0,
+                nodeSort: null,
+                nodeSort: 'descending',
+                draggable: true,
+                // nodeGap: [180, 8, 10, 18],  // 分别控制各层之间的间距
+                // layoutIterations: 64, 
+ 
+            }]
+        };
+
+        myChart.setOption(option);
+        
+        // 添加窗口大小变化时的响应
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+        
+        // 添加按钮事件
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            myChart.setOption(option);
+        });
+        
+        document.getElementById('highlightBtn').addEventListener('click', function() {
+            // 高亮显示关键机制
+            var highlightOption = JSON.parse(JSON.stringify(option));
+            highlightOption.series[0].lineStyle.opacity = 0.1;
+            highlightOption.series[0].emphasis.lineStyle.opacity = 0.8;
+            
+            // 高亮关键机制节点
+            highlightOption.series[0].data.forEach(function(node, index) {
+                if (topMechanisms.includes(node.name)) {
+                    node.itemStyle = {
+                        color: mechanismColors[node.name],
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(241, 196, 15, 0.5)'
+                    };
+                    node.label = {
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        fontSize: 14
+                    };
+                } else {
+                    node.itemStyle = {
+                        opacity: 0.3
+                    };
+                }
+            });
+            
+            myChart.setOption(highlightOption);
+        });
+        
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            var imgData = myChart.getDataURL({
+                type: 'png',
+                pixelRatio: 2,
+                backgroundColor: '#fff'
+            });
+            var link = document.createElement('a');
+            link.href = imgData;
+            link.download = '社保政策影响机制桑基图.png';
+            link.click();
+        });
+    </script>
+</body>
+</html>
