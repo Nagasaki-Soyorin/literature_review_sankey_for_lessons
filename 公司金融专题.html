@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机构共同持股影响机制桑基图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            position: relative;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .header p {
+            color: #7f8c8d;
+            font-size: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            min-height: 0;
+        }
+        #main {
+            flex: 1;
+            min-height: 60vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        .legend {
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+        }
+        .legend h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .legend-text {
+            font-size: 0.9rem;
+            color: #34495e;
+            line-height: 1.4;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            min-width: 120px;
+        }
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            .legend {
+                width: 100%;
+                max-height: 300px;
+                order: 2;
+            }
+            #main {
+                order: 1;
+                min-height: 70vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .header {
+                padding: 15px;
+                margin-bottom: 10px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .header p {
+                font-size: 0.9rem;
+            }
+            #main {
+                padding: 10px;
+                min-height: 60vh;
+            }
+            .legend {
+                padding: 15px;
+                max-height: 250px;
+            }
+            .btn {
+                padding: 8px 16px;
+                min-width: 100px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>机构共同持股影响机制桑基图</h1>
+        <p>展示机构共同持股通过研究方法、影响机制最终影响经济和社会结果的四层结构关系图</p>
+    </div>
+    
+    <div class="container">
+        <div id="main"></div>
+        <div class="legend">
+            <h3>图例说明</h3>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #e74c3c;"></div>
+                <div class="legend-text">机构层 - 共同持股的机构类型</div>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #9b59b6;"></div>
+                <div class="legend-text">X变量层 - 研究对象和具体细节</div>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #3498db;"></div>
+                <div class="legend-text">机制层 - 机构共同持股影响的中介机制</div>
+            </div>
+            <div class="legend-item">
+                <div class="color-box" style="background-color: #2ecc71;"></div>
+                <div class="legend-text">结果层 - 最终经济与企业结果</div>
+            </div>
+            
+            <h3>关键机制</h3>
+            <div id="mechanismLegend"></div>
+            
+            <h3>操作指南</h3>
+            <p class="legend-text">• 点击节点可查看详细信息</p>
+            <p class="legend-text">• 拖动节点可调整布局</p>
+            <p class="legend-text">• 鼠标悬停可查看连接关系</p>
+            <p class="legend-text">• 连接数最多的三个机制颜色最深</p>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" id="resetBtn">重置视图</button>
+        <button class="btn" id="highlightBtn">高亮关键机制</button>
+        <button class="btn" id="exportBtn">导出图片</button>
+    </div>
+    
+    <div class="footer">
+        <p>数据来源：社保政策研究 | 可视化设计：ECharts</p>
+    </div>
+
+    <script>
+        // 初始化图表
+        var chartDom = document.getElementById('main');
+        var myChart = echarts.init(chartDom);
+        
+        // 定义数据 - 四层结构：政策 -> 方法 -> 机制 -> Y
+        var data = {
+            nodes: [
+                // 第一层：持股主体 (0-6)
+                {name: "夫妻", category: 0},
+                {name: "所有机构", category: 0},
+                {name: "基金家族", category: 0},
+                {name: "管理层和机构", category: 0},
+                {name: "政府引导基金", category: 0},
+                {name: "基金", category: 0},
+                
+                // 第二层：核心变量/识别策略 (7-24)
+                {name: "夫妻是否共同持股", category: 1},
+                {name: "机构共同持股", category: 1},
+                {name: "是否基金共同持股", category: 1},
+                {name: "机构持股比例", category: 1},
+                {name: "管理层持股*机构持股交乘项", category: 1},
+                {name: "创新溢出暴露程度", category: 1},
+                {name: "机构纵向持股", category: 1},
+                {name: "共同持股机构数量", category: 1},
+                {name: "机构共同持股比例", category: 1},
+                {name: "是否有政府引导基金支持", category: 1},
+                {name: "是否机构持股", category: 1},
+                {name: "基金网络中心度", category: 1},
+                {name: "日历时间-季度末", category: 1},
+                {name: "ESG披露得分-ESG实际得分", category: 1}, // 注意：这个可能既是变量也是机制，先放在这层
+                
+                // 第三层：机制/渠道 (25-59)
+                {name: "妻子任职", category: 2},
+                {name: "女性高管数量", category: 2},
+                {name: "大男子主义倾向", category: 2},
+                {name: "代理成本", category: 2},
+                {name: "监督治理", category: 2},
+                {name: "委派管理层", category: 2},
+                {name: "意见分歧", category: 2},
+                {name: "私有信息套利", category: 2},
+                {name: "退出威胁", category: 2},
+                {name: "管理层权力", category: 2},
+                {name: "专利引用", category: 2},
+                {name: "融资替代", category: 2},
+                {name: "投资者调研", category: 2},
+                {name: "合谋", category: 2},
+                {name: "短期倾向", category: 2},
+                {name: "市场地位", category: 2},
+                {name: "融资约束", category: 2},
+                {name: "机构持股", category: 2},
+                {name: "媒体监督", category: 2},
+                {name: "创新扩散", category: 2},
+                {name: "供需协同", category: 2},
+                {name: "信息透明度", category: 2},
+                {name: "研发投入", category: 2},
+                {name: "供应链话语权", category: 2},
+                {name: "商业信用", category: 2},
+                {name: "交易成本", category: 2},
+                {name: "产品市场", category: 2},
+                {name: "信息不对称", category: 2},
+                {name: "资源获取", category: 2},
+                {name: "信息共享", category: 2},
+                {name: "创新溢出", category: 2},
+                {name: "选股技能", category: 2},
+                {name: "资产配置", category: 2},
+                {name: "管理技能", category: 2},
+                {name: "基金家族内部交易", category: 2},
+                {name: "流动性约束", category: 2},
+                
+                // 第四层：Y变量/结果 (60-84)
+                {name: "资产负债比率", category: 3},
+                {name: "现金持有水平", category: 3},
+                {name: "盈余管理程度(修正Jones)", category: 3},
+                {name: "盈余管理程度(扩展Jones)", category: 3},
+                {name: "CAPM超额收益率", category: 3},
+                {name: "FF超额收益率", category: 3},
+                {name: "创新投入", category: 3},
+                {name: "创新产出", category: 3},
+                {name: "发明专利", category: 3},
+                {name: "商业信用期限", category: 3},
+                {name: "自建ESG指数", category: 3},
+                {name: "华证ESG评级", category: 3},
+                {name: "创新广泛性", category: 3},
+                {name: "是否发生财务重述", category: 3},
+                {name: "年报过分乐观语调", category: 3},
+                {name: "数字化过度披露程度", category: 3},
+                {name: "投资收益率", category: 3},
+                {name: "机构共同持股倾向", category: 3},
+                {name: "全要素生产率", category: 3},
+                {name: "长期资金缺口", category: 3},
+                {name: "融资成本", category: 3},
+                {name: "企业过度负债", category: 3},
+                {name: "企业债务负担", category: 3},
+                {name: "价格加成率", category: 3},
+                {name: "企业成本加成率", category: 3}
+            ],
+            links: [
+                // 第1行：夫妻 → 夫妻是否共同持股 → 机制 → Y变量
+                {source: "夫妻", target: "夫妻是否共同持股", value: 1},
+                {source: "夫妻是否共同持股", target: "妻子任职", value: 1},
+                {source: "夫妻是否共同持股", target: "女性高管数量", value: 1},
+                {source: "夫妻是否共同持股", target: "大男子主义倾向", value: 1},
+                {source: "夫妻是否共同持股", target: "代理成本", value: 1},
+                {source: "妻子任职", target: "资产负债比率", value: 1},
+                {source: "妻子任职", target: "现金持有水平", value: 1},
+                {source: "女性高管数量", target: "资产负债比率", value: 1},
+                {source: "女性高管数量", target: "现金持有水平", value: 1},
+                {source: "大男子主义倾向", target: "资产负债比率", value: 1},
+                {source: "大男子主义倾向", target: "现金持有水平", value: 1},
+                {source: "代理成本", target: "资产负债比率", value: 1},
+                {source: "代理成本", target: "现金持有水平", value: 1},
+                
+                // 第2行：所有机构 → 机构共同持股 → 监督治理；委派管理层 → 盈余管理程度
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "监督治理", value: 1},
+                {source: "机构共同持股", target: "委派管理层", value: 1},
+                {source: "监督治理", target: "盈余管理程度(修正Jones)", value: 1},
+                {source: "监督治理", target: "盈余管理程度(扩展Jones)", value: 1},
+                {source: "委派管理层", target: "盈余管理程度(修正Jones)", value: 1},
+                {source: "委派管理层", target: "盈余管理程度(扩展Jones)", value: 1},
+                
+                // 第3行：基金家族 → 是否基金共同持股 → 意见分歧；私有信息套利 → 超额收益率
+                {source: "基金家族", target: "是否基金共同持股", value: 1},
+                {source: "是否基金共同持股", target: "意见分歧", value: 1},
+                {source: "是否基金共同持股", target: "私有信息套利", value: 1},
+                {source: "意见分歧", target: "CAPM超额收益率", value: 1},
+                {source: "意见分歧", target: "FF超额收益率", value: 1},
+                {source: "私有信息套利", target: "CAPM超额收益率", value: 1},
+                {source: "私有信息套利", target: "FF超额收益率", value: 1},
+                
+                // 第4行：所有机构 → 机构持股比例 → 私有信息套利；监督治理 → FF超额收益率
+                {source: "所有机构", target: "机构持股比例", value: 1},
+                {source: "机构持股比例", target: "私有信息套利", value: 1},
+                {source: "机构持股比例", target: "监督治理", value: 1},
+                {source: "私有信息套利", target: "FF超额收益率", value: 1},
+                {source: "监督治理", target: "FF超额收益率", value: 1},
+                
+                // 第5行：管理层和机构 → 管理层持股*机构持股交乘项 → 退出威胁；管理层权力 → 创新
+                {source: "管理层和机构", target: "管理层持股*机构持股交乘项", value: 1},
+                {source: "管理层持股*机构持股交乘项", target: "退出威胁", value: 1},
+                {source: "管理层持股*机构持股交乘项", target: "管理层权力", value: 1},
+                {source: "退出威胁", target: "创新投入", value: 1},
+                {source: "退出威胁", target: "创新产出", value: 1},
+                {source: "管理层权力", target: "创新投入", value: 1},
+                {source: "管理层权力", target: "创新产出", value: 1},
+                
+                // 第6行：所有机构 → 创新溢出暴露程度 → 专利引用 → 发明专利
+                {source: "所有机构", target: "创新溢出暴露程度", value: 1},
+                {source: "创新溢出暴露程度", target: "专利引用", value: 1},
+                {source: "专利引用", target: "发明专利", value: 1},
+                
+                // 第7行：所有机构 → 机构纵向持股 → 多个机制 → 商业信用期限
+                {source: "所有机构", target: "机构纵向持股", value: 1},
+                {source: "机构纵向持股", target: "融资替代", value: 1},
+                {source: "机构纵向持股", target: "投资者调研", value: 1},
+                {source: "机构纵向持股", target: "委派管理层", value: 1},
+                {source: "机构纵向持股", target: "监督治理", value: 1},
+                {source: "融资替代", target: "商业信用期限", value: 1},
+                {source: "投资者调研", target: "商业信用期限", value: 1},
+                {source: "委派管理层", target: "商业信用期限", value: 1},
+                {source: "监督治理", target: "商业信用期限", value: 1},
+                
+                // 第8行：所有机构 → 机构共同持股 → 合谋；短期倾向 → ESG差异
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "合谋", value: 1},
+                {source: "机构共同持股", target: "短期倾向", value: 1},
+                {source: "合谋", target: "ESG披露得分-ESG实际得分", value: 1},
+                {source: "短期倾向", target: "ESG披露得分-ESG实际得分", value: 1},
+                
+                // 第9行：所有机构 → 机构共同持股；共同持股机构数量；机构共同持股比例 → 市场地位 → 自建ESG指数
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "所有机构", target: "共同持股机构数量", value: 1},
+                {source: "所有机构", target: "机构共同持股比例", value: 1},
+                {source: "机构共同持股", target: "市场地位", value: 1},
+                {source: "共同持股机构数量", target: "市场地位", value: 1},
+                {source: "机构共同持股比例", target: "市场地位", value: 1},
+                {source: "市场地位", target: "自建ESG指数", value: 1},
+                
+                // 第10行：政府引导基金 → 是否有政府引导基金支持 → 多个机制 → 华证ESG评级
+                {source: "政府引导基金", target: "是否有政府引导基金支持", value: 1},
+                {source: "是否有政府引导基金支持", target: "融资约束", value: 1},
+                {source: "是否有政府引导基金支持", target: "机构持股", value: 1},
+                {source: "是否有政府引导基金支持", target: "代理成本", value: 1},
+                {source: "是否有政府引导基金支持", target: "媒体监督", value: 1},
+                {source: "融资约束", target: "华证ESG评级", value: 1},
+                {source: "机构持股", target: "华证ESG评级", value: 1},
+                {source: "代理成本", target: "华证ESG评级", value: 1},
+                {source: "媒体监督", target: "华证ESG评级", value: 1},
+                
+                // 第11行：所有机构 → 是否机构持股 → 合谋 → ESG差异
+                {source: "所有机构", target: "是否机构持股", value: 1},
+                {source: "是否机构持股", target: "合谋", value: 1},
+                {source: "合谋", target: "ESG披露得分-ESG实际得分", value: 1},
+                
+                // 第12行：所有机构 → 机构纵向持股 → 多个机制 → 创新广泛性
+                {source: "所有机构", target: "机构纵向持股", value: 1},
+                {source: "机构纵向持股", target: "监督治理", value: 1},
+                {source: "机构纵向持股", target: "创新扩散", value: 1},
+                {source: "机构纵向持股", target: "供需协同", value: 1},
+                {source: "机构纵向持股", target: "委派管理层", value: 1},
+                {source: "监督治理", target: "创新广泛性", value: 1},
+                {source: "创新扩散", target: "创新广泛性", value: 1},
+                {source: "供需协同", target: "创新广泛性", value: 1},
+                {source: "委派管理层", target: "创新广泛性", value: 1},
+                
+                // 第13行：所有机构 → 机构共同持股 → 供需协同；监督治理 → 是否发生财务重述
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "供需协同", value: 1},
+                {source: "机构共同持股", target: "监督治理", value: 1},
+                {source: "供需协同", target: "是否发生财务重述", value: 1},
+                {source: "监督治理", target: "是否发生财务重述", value: 1},
+                
+                // 第14行：所有机构 → 机构共同持股 → 代理成本；信息透明度；委派管理层 → 年报过分乐观语调
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "代理成本", value: 1},
+                {source: "机构共同持股", target: "信息透明度", value: 1},
+                {source: "机构共同持股", target: "委派管理层", value: 1},
+                {source: "代理成本", target: "年报过分乐观语调", value: 1},
+                {source: "信息透明度", target: "年报过分乐观语调", value: 1},
+                {source: "委派管理层", target: "年报过分乐观语调", value: 1},
+                
+                // 第15行：所有机构 → 机构共同持股 → 合谋；监督治理 → 数字化过度披露程度
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "合谋", value: 1},
+                {source: "机构共同持股", target: "监督治理", value: 1},
+                {source: "合谋", target: "数字化过度披露程度", value: 1},
+                {source: "监督治理", target: "数字化过度披露程度", value: 1},
+                
+                // 第16行：基金 → 基金网络中心度 → 选股技能；资产配置；管理技能 → 投资收益率
+                {source: "基金", target: "基金网络中心度", value: 1},
+                {source: "基金网络中心度", target: "选股技能", value: 1},
+                {source: "基金网络中心度", target: "资产配置", value: 1},
+                {source: "基金网络中心度", target: "管理技能", value: 1},
+                {source: "选股技能", target: "投资收益率", value: 1},
+                {source: "资产配置", target: "投资收益率", value: 1},
+                {source: "管理技能", target: "投资收益率", value: 1},
+                
+                // 第17行：基金家族 → 日历时间-季度末 → 基金家族内部交易 → 投资收益率
+                {source: "基金家族", target: "日历时间-季度末", value: 1},
+                {source: "日历时间-季度末", target: "基金家族内部交易", value: 1},
+                {source: "基金家族内部交易", target: "投资收益率", value: 1},
+                
+                // 第18行：基金 → 机构共同持股 → 流动性约束；信息共享 → 机构共同持股倾向
+                {source: "基金", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "流动性约束", value: 1},
+                {source: "机构共同持股", target: "信息共享", value: 1},
+                {source: "流动性约束", target: "机构共同持股倾向", value: 1},
+                {source: "信息共享", target: "机构共同持股倾向", value: 1},
+                
+                // 第19行：所有机构 → 机构共同持股 → 研发投入，代理成本，监督治理 → 全要素生产率
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "研发投入", value: 1},
+                {source: "机构共同持股", target: "代理成本", value: 1},
+                {source: "机构共同持股", target: "监督治理", value: 1},
+                {source: "研发投入", target: "全要素生产率", value: 1},
+                {source: "代理成本", target: "全要素生产率", value: 1},
+                {source: "监督治理", target: "全要素生产率", value: 1},
+                
+                // 第20行：所有机构 → 机构共同持股 → 供应链话语权；商业信用；交易成本 → 长期资金缺口
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "供应链话语权", value: 1},
+                {source: "机构共同持股", target: "商业信用", value: 1},
+                {source: "机构共同持股", target: "交易成本", value: 1},
+                {source: "供应链话语权", target: "长期资金缺口", value: 1},
+                {source: "商业信用", target: "长期资金缺口", value: 1},
+                {source: "交易成本", target: "长期资金缺口", value: 1},
+                
+                // 第21行：所有机构 → 机构共同持股 → 产品市场；信息不对称；监督治理 → 融资成本
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "产品市场", value: 1},
+                {source: "机构共同持股", target: "信息不对称", value: 1},
+                {source: "机构共同持股", target: "监督治理", value: 1},
+                {source: "产品市场", target: "融资成本", value: 1},
+                {source: "信息不对称", target: "融资成本", value: 1},
+                {source: "监督治理", target: "融资成本", value: 1},
+                
+                // 第22行：所有机构 → 机构共同持股 → 资源获取 → 企业过度负债
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "资源获取", value: 1},
+                {source: "资源获取", target: "企业过度负债", value: 1},
+                
+                // 第23行：所有机构 → 机构共同持股 → 商业信用；监督治理 → 企业债务负担
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "商业信用", value: 1},
+                {source: "机构共同持股", target: "监督治理", value: 1},
+                {source: "商业信用", target: "企业债务负担", value: 1},
+                {source: "监督治理", target: "企业债务负担", value: 1},
+                
+                // 第24行：所有机构 → 机构共同持股 → 代理成本；信息共享；创新溢出 → 价格加成率
+                {source: "所有机构", target: "机构共同持股", value: 1},
+                {source: "机构共同持股", target: "代理成本", value: 1},
+                {source: "机构共同持股", target: "信息共享", value: 1},
+                {source: "机构共同持股", target: "创新溢出", value: 1},
+                {source: "代理成本", target: "价格加成率", value: 1},
+                {source: "信息共享", target: "价格加成率", value: 1},
+                {source: "创新溢出", target: "价格加成率", value: 1}
+            ]
+        };
+
+        // 计算机制到Y的连接数量
+        function calculateMechanismLinks() {
+            const mechanismLinkCount = {};
+            
+            data.links.forEach(link => {
+                const sourceNode = data.nodes.find(node => node.name === link.source);
+                const targetNode = data.nodes.find(node => node.name === link.target);
+                
+                // 只计算机制到Y的连接
+                if (sourceNode && targetNode && sourceNode.category === 2 && targetNode.category === 3) {
+                    if (!mechanismLinkCount[link.source]) {
+                        mechanismLinkCount[link.source] = 0;
+                    }
+                    mechanismLinkCount[link.source]++;
+                }
+            });
+            
+            return mechanismLinkCount;
+        }
+
+        // 为机制分配颜色
+        function assignMechanismColors() {
+            const mechanismLinkCount = calculateMechanismLinks();
+            const mechanismNames = Object.keys(mechanismLinkCount);
+            
+            // 按连接数排序
+            const sortedMechanisms = mechanismNames.sort((a, b) => mechanismLinkCount[b] - mechanismLinkCount[a]);
+            
+            // 定义颜色范围
+            const colorPalette = [
+                '#FFB6C1', '#FFD700', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C',
+                '#E6E6FA', '#FFA07A', '#20B2AA', '#DEB887', '#FF69B4', '#00FA9A',
+                '#FFDAB9', '#B0C4DE', '#FF6347', '#7FFFD4', '#FFFACD', '#F5DEB3'
+            ];
+            
+            const mechanismColors = {};
+            const topMechanisms = sortedMechanisms.slice(0, 3);
+            
+            // 为连接数最多的三个机制分配最深的颜色
+            const deepColors = ['#8B0000', '#006400', '#00008B'];
+            
+            sortedMechanisms.forEach((mechanism, index) => {
+                if (index < 3) {
+                    mechanismColors[mechanism] = deepColors[index];
+                } else {
+                    mechanismColors[mechanism] = colorPalette[index % colorPalette.length];
+                }
+            });
+            
+            return {
+                mechanismColors,
+                mechanismLinkCount,
+                topMechanisms
+            };
+        }
+
+        // 应用机制颜色到链接和节点
+        // 应用机制颜色到链接和节点
+        function applyMechanismColors() {
+            const { mechanismColors, mechanismLinkCount, topMechanisms } = assignMechanismColors();
+            
+            // 更新链接颜色
+            data.links.forEach(link => {
+                const sourceNode = data.nodes.find(node => node.name === link.source);
+                const targetNode = data.nodes.find(node => node.name === link.target);
+                
+                // 添加防御性检查，确保节点存在且有category属性
+                if (!sourceNode || !targetNode || sourceNode.category === undefined || targetNode.category === undefined) {
+                    console.warn('找不到节点或节点缺少category属性:', link.source, '->', link.target);
+                    link.lineStyle = {
+                        color: 'rgba(180, 180, 180, 0.4)',
+                        curveness: 0.5
+                    };
+                    return; // 跳过这个链接的处理
+                }
+                
+                // 机制到Y的连接使用机制对应的颜色
+                if (sourceNode.category === 2 && targetNode.category === 3) {
+                    link.lineStyle = {
+                        color: mechanismColors[link.source],
+                        opacity: topMechanisms.includes(link.source) ? 0.8 : 0.5,
+                        curveness: 0.5
+                    };
+                } 
+                // 前两个层次的链接颜色较浅
+                else if ((sourceNode.category === 0 && targetNode.category === 1) || 
+                        (sourceNode.category === 1 && targetNode.category === 2)) {
+                    link.lineStyle = {
+                        color: 'rgba(180, 180, 180, 0.3)',
+                        curveness: 0.5
+                    };
+                }
+                // 其他链接使用默认颜色
+                else {
+                    link.lineStyle = {
+                        color: 'rgba(180, 180, 180, 0.4)',
+                        curveness: 0.5
+                    };
+                }
+            });
+            
+            // 更新节点样式 - 为连接数最多的三个机制设置白色字体和更大字号
+            data.nodes.forEach(node => {
+                if (node.category === 2 && topMechanisms.includes(node.name)) {
+                    node.itemStyle = {
+                        color: mechanismColors[node.name],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    };
+                    node.label = {
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        fontSize: 13
+                    };
+                }
+            });
+            
+            return { mechanismColors, mechanismLinkCount, topMechanisms };
+        }
+
+        // 创建机制图例
+        function createMechanismLegend(mechanismColors, mechanismLinkCount, topMechanisms) {
+            const legendContainer = document.getElementById('mechanismLegend');
+            legendContainer.innerHTML = '';
+            
+            const sortedMechanisms = Object.keys(mechanismColors).sort((a, b) => mechanismLinkCount[b] - mechanismLinkCount[a]);
+            
+            sortedMechanisms.forEach(mechanism => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                const isTopMechanism = topMechanisms.includes(mechanism);
+                
+                legendItem.innerHTML = `
+                    <div class="color-box" style="background-color: ${mechanismColors[mechanism]}; ${isTopMechanism ? 'border: 2px solid #000;' : ''}"></div>
+                    <div class="legend-text">
+                        ${mechanism} 
+                        <span style="color: #666; font-size: 0.8rem;">(${mechanismLinkCount[mechanism]}个连接${isTopMechanism ? ' ⭐' : ''})</span>
+                    </div>
+                `;
+                
+                legendContainer.appendChild(legendItem);
+            });
+        }
+
+        // 应用机制颜色并创建图例
+        const { mechanismColors, mechanismLinkCount, topMechanisms } = applyMechanismColors();
+        createMechanismLegend(mechanismColors, mechanismLinkCount, topMechanisms);
+
+        // 设置选项
+        var option = {
+            title: {
+                text: ' ',
+                subtext: ' ',
+                left: 'center',
+                textStyle: {
+                    fontSize: 22,
+                    fontWeight: 'bold',
+                    color: '#2c3e50'
+                },
+                subtextStyle: {
+                    fontSize: 14,
+                    color: '#7f8c8d'
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+                triggerOn: 'mousemove',
+                formatter: function(params) {
+                    if (params.dataType === 'node') {
+                        const linkCount = mechanismLinkCount[params.name] || 0;
+                        return `<div style="font-weight:bold;margin-bottom:5px">${params.name}</div>
+                               <div>连接数: ${params.value || linkCount}</div>`;
+                    } else {
+                        return `<div style="font-weight:bold">${params.data.source} → ${params.data.target}</div>`;
+                    }
+                }
+            },
+            series: [{
+                type: 'sankey',
+                layout: 'none',
+                data: data.nodes,
+                links: data.links,
+                emphasis: {
+                    focus: 'adjacency',
+                    lineStyle: {
+                        width: 3
+                    }
+                },
+                levels: [
+                    {
+                        depth: 0,
+                        itemStyle: {
+                            color: '#e74c3c'
+                        },
+                        lineStyle: {
+                            color: 'rgba(180, 180, 180, 0.3)',
+                            opacity: 0.4
+                        }
+                    },
+                    {
+                        depth: 1,
+                        itemStyle: {
+                            color: '#9b59b6'
+                        },
+                        lineStyle: {
+                            color: 'rgba(180, 180, 180, 0.3)',
+                            opacity: 0.4
+                        }
+                    },
+                    {
+                        depth: 2,
+                        itemStyle: {
+                            color: '#3498db'
+                        },
+                        lineStyle: {
+                            color: 'source',
+                            opacity: 0.4
+                        }
+                    },
+                    {
+                        depth: 3,
+                        itemStyle: {
+                            color: '#2ecc71'
+                        },
+                        lineStyle: {
+                            color: 'source',
+                            opacity: 0.3
+                        }
+                    }
+                ],
+                lineStyle: {
+                    curveness: 0.5,
+                    opacity: 0.3
+                },
+                label: {
+                    color: '#2c3e50',
+                    fontSize: 11,
+                    fontWeight: 'normal',
+                    position: 'right',
+                    textAlign: 'center',
+                    verticalAlign: 'middle'
+                },
+                nodeWidth: 15,
+                nodeGap: 2,
+                // nodeAlign: 'center',
+                nodeAlign: 'justify', 
+                layoutIterations: 0,
+                nodeSort: null,
+                nodeSort: 'descending',
+                draggable: true,
+                // nodeGap: [180, 8, 10, 18],  // 分别控制各层之间的间距
+                // layoutIterations: 64, 
+ 
+            }]
+        };
+
+        myChart.setOption(option);
+        
+        // 添加窗口大小变化时的响应
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+        
+        // 添加按钮事件
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            myChart.setOption(option);
+        });
+        
+        document.getElementById('highlightBtn').addEventListener('click', function() {
+            // 高亮显示关键机制
+            var highlightOption = JSON.parse(JSON.stringify(option));
+            highlightOption.series[0].lineStyle.opacity = 0.1;
+            highlightOption.series[0].emphasis.lineStyle.opacity = 0.8;
+            
+            // 高亮关键机制节点
+            highlightOption.series[0].data.forEach(function(node, index) {
+                if (topMechanisms.includes(node.name)) {
+                    node.itemStyle = {
+                        color: mechanismColors[node.name],
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(241, 196, 15, 0.5)'
+                    };
+                    node.label = {
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        fontSize: 14
+                    };
+                } else {
+                    node.itemStyle = {
+                        opacity: 0.3
+                    };
+                }
+            });
+            
+            myChart.setOption(highlightOption);
+        });
+        
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            var imgData = myChart.getDataURL({
+                type: 'png',
+                pixelRatio: 2,
+                backgroundColor: '#fff'
+            });
+            var link = document.createElement('a');
+            link.href = imgData;
+            link.download = '社保政策影响机制桑基图.png';
+            link.click();
+        });
+    </script>
+</body>
+</html>
